@@ -57,9 +57,9 @@ static void gpio_exit(void);
 static int gpio_open(struct inode *inode, struct file *filp)
 {
 	struct gpio_info *gpio_info_tmp;
-	u32 minor = iminor(inode);
+	u32 minor = iminor(inode);	//-从inode->i_rdev中提取次设备号
 
-	gpio_info_tmp = gpio_info_file[minor];
+	gpio_info_tmp = gpio_info_file[minor];	//-同样的驱动程序区分不同的设备
 
 	gpio_free(MXS_PIN_TO_GPIO(gpio_info_tmp->pin));
 	if (gpio_request(MXS_PIN_TO_GPIO(gpio_info_tmp->pin), gpio_info_tmp->pin_name)) {
@@ -67,7 +67,7 @@ static int gpio_open(struct inode *inode, struct file *filp)
 		return -1;
 	}
 
-	filp->private_data = gpio_info_file[minor];
+	filp->private_data = gpio_info_file[minor];	//-这里应该是想应用程序传递了全局变量，以便获取内核层数据
 
 	return 0;
 }
@@ -85,10 +85,10 @@ static int  gpio_release(struct inode *inode, struct file *filp)
 ssize_t gpio_write(struct file *filp, const char __user *buf, size_t count,
                 loff_t *f_pos)
 {
-	struct gpio_info *gpio_info_tmp = (struct gpio_info *)filp->private_data;
+	struct gpio_info *gpio_info_tmp = (struct gpio_info *)filp->private_data;	//-反复操作一个全局变量
 	char data = '0';
 
-	copy_from_user(&data, buf, sizeof(data));
+	copy_from_user(&data, buf, sizeof(data));	//-可以一次性从用户空间获取一个数据块
 	data = data - '0';
 
     if (data == 1 || data == 0) {
@@ -154,7 +154,7 @@ static struct file_operations gpio_fops={
 	.ioctl		= gpio_ioctl,
 };
 	
-static int __init gpio_init(void)
+static int __init gpio_init(void)	//-主要完成了设备文件的注册
 {
 	int i = 0;
 	int ret = 0;
