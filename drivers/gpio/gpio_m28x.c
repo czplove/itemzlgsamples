@@ -23,7 +23,7 @@
 
 struct gpio_info {
 	u32  	 	   pin;
-	char 	 	   pin_name[20];
+	char 	 	   pin_name[20];	//-一但驱动注册设备成功，那么这个设备文件就会出现在/dev目录下
 	struct miscdevice *pmiscdev;
 };
 
@@ -168,9 +168,9 @@ static int __init gpio_init(void)
 		memset(all_gpios_info[i].pmiscdev, 0, sizeof(struct miscdevice));
 		all_gpios_info[i].pmiscdev->name  = all_gpios_info[i].pin_name;
 		all_gpios_info[i].pmiscdev->fops  = &gpio_fops;	
-		all_gpios_info[i].pmiscdev->minor = MISC_DYNAMIC_MINOR;
+		all_gpios_info[i].pmiscdev->minor = MISC_DYNAMIC_MINOR;	//-表示使用动态设备号
 
-		ret = misc_register(all_gpios_info[i].pmiscdev);
+		ret = misc_register(all_gpios_info[i].pmiscdev);	//-完成设备注册
 		if (ret) {
 			printk("misc regist faile \n");
 			return -1;
@@ -191,7 +191,7 @@ static void __exit gpio_exit(void)
 	int i = 0;
 
 	for (i = 0; all_gpios_info[i].pin != 0; i++) {
-		misc_deregister(all_gpios_info[i].pmiscdev);
+		misc_deregister(all_gpios_info[i].pmiscdev);	//-混杂设备的注销函数
 	}
 	printk("DTU-M28x gpio driver down.\n");
 }
